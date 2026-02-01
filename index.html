@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FEBI Dashboard - Sistem Manajemen Skripsi</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Loading Screen -->
+<div id="loadingScreen">
+  <div class="spinner"></div>
+  <h2>FEBI UINSI Dashboard</h2>
+  <p style="color:white; margin-top:10px;">Loading...</p>
+</div>
+
+<!-- Login Section -->
+<div id="loginSection">
+  <div class="login-container">
+    <div class="login-header">
+      <h1>FEBI UINSI Samarinda</h1>
+      <p>Sistem Manajemen Skripsi</p>
+    </div>
+    
+    <div class="login-tabs">
+      <button class="tab-button active" data-tab="loginForm">Login</button>
+      <button class="tab-button" data-tab="registerMahasiswaForm">Daftar Mahasiswa</button>
+      <button class="tab-button" data-tab="registerDosenForm">Daftar Dosen</button>
+    </div>
+    
+    <div class="login-content">
+      <!-- Login Form -->
+      <form id="loginForm" class="form-section active">
+        <div id="loginAlert" class="alert"></div>
+        <div class="form-group">
+          <label>ID (NIM/NIP/Admin)</label>
+          <input type="text" id="loginId" required placeholder="Masukkan ID">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" id="loginPassword" required placeholder="Masukkan password">
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+        <p style="font-size:12px; color:#666; margin-top:15px; text-align:center;">
+          Default: ADMIN001 / admin123
+        </p>
+      </form>
+      
+      <!-- Register Mahasiswa Form -->
+      <form id="registerMahasiswaForm" class="form-section">
+        <div id="registerMahasiswaAlert" class="alert"></div>
+        <div class="form-group">
+          <label>NIM</label>
+          <input type="text" name="id" required placeholder="Nomor Induk Mahasiswa">
+        </div>
+        <div class="form-group">
+          <label>Nama Lengkap</label>
+          <input type="text" name="nama" required placeholder="Nama lengkap">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" required placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label>WhatsApp</label>
+          <input type="text" name="wa" required placeholder="08123456789">
+        </div>
+        <div class="form-group">
+          <label>Program Studi</label>
+          <select name="prodi" required id="prodiSelectMhs"></select>
+        </div>
+        <div class="form-group">
+          <label>Tahun Masuk</label>
+          <input type="number" name="tahunMasuk" required value="2024" min="2020" max="2030">
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" required placeholder="Buat password">
+        </div>
+        <button type="submit" class="btn btn-primary">Daftar</button>
+      </form>
+      
+      <!-- Register Dosen Form -->
+      <form id="registerDosenForm" class="form-section">
+        <div id="registerDosenAlert" class="alert"></div>
+        <div class="form-group">
+          <label>NIP</label>
+          <input type="text" name="id" required placeholder="Nomor Induk Pegawai">
+        </div>
+        <div class="form-group">
+          <label>Nama Lengkap</label>
+          <input type="text" name="nama" required placeholder="Nama lengkap">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" required placeholder="email@example.com">
+        </div>
+        <div class="form-group">
+          <label>WhatsApp</label>
+          <input type="text" name="wa" required placeholder="08123456789">
+        </div>
+        <div class="form-group">
+          <label>Keahlian</label>
+          <input type="text" name="keahlian" required placeholder="Bidang keahlian">
+        </div>
+        <div class="form-group">
+          <label>Program Studi</label>
+          <select name="prodi" required id="prodiSelectDosen"></select>
+        </div>
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" required placeholder="Buat password">
+        </div>
+        <button type="submit" class="btn btn-primary">Daftar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Dashboard Section -->
+<div id="dashboardSection">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="logo">FE</div>
+        <div class="header-title">
+          <h2>FEBI UINSI Dashboard</h2>
+          <p>Sistem Manajemen Skripsi</p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="user-info">
+          <strong id="userName">User</strong>
+          <span id="userRole">Role</span>
+        </div>
+        <button class="btn btn-danger btn-sm" id="logoutBtn">Logout</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Navigation -->
+  <div class="dashboard-nav">
+    <div class="nav-content">
+      <ul class="nav-menu" id="navMenu">
+        <!-- Dynamic menu items -->
+      </ul>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="dashboard-main">
+    
+    <!-- Home Section -->
+    <div id="section-home" class="content-section active">
+      <div class="section-header">
+        <h3>Dashboard</h3>
+      </div>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon primary">👨‍🎓</div>
+          </div>
+          <div class="stat-value" id="statMahasiswa">0</div>
+          <div class="stat-label">Total Mahasiswa</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon success">👨‍🏫</div>
+          </div>
+          <div class="stat-value" id="statDosen">0</div>
+          <div class="stat-label">Total Dosen</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon info">📄</div>
+          </div>
+          <div class="stat-value" id="statProposal">0</div>
+          <div class="stat-label">Total Proposal</div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-header">
+            <div class="stat-icon primary">🗂️</div>
+          </div>
+          <div class="stat-value" id="statRepository">0</div>
+          <div class="stat-label">Repository Skripsi</div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h4>Selamat Datang di FEBI Dashboard</h4>
+        </div>
+        <div class="card-body">
+          <p>Dashboard ini membantu Anda mengelola:</p>
+          <ul style="margin:15px 0; padding-left:20px;">
+            <li>Data Mahasiswa dan Dosen</li>
+            <li>Proposal Skripsi</li>
+            <li>Bimbingan Skripsi (Bab 1-5)</li>
+            <li>Repository Skripsi</li>
+          </ul>
+          <p>Gunakan menu navigasi di atas untuk mengakses fitur-fitur yang tersedia.</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mahasiswa Section -->
+    <div id="section-mahasiswa" class="content-section">
+      <div class="section-header">
+        <h3>Data Mahasiswa</h3>
+        <button class="btn btn-primary" onclick="addMahasiswa()">+ Tambah Mahasiswa</button>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h4>Daftar Mahasiswa</h4>
+        </div>
+        <div class="card-body">
+          <div class="search-bar">
+            <input type="text" placeholder="Cari mahasiswa..." id="searchMahasiswa">
+            <select id="filterProdi">
+              <option value="">Semua Prodi</option>
+            </select>
+          </div>
+          
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>NIM</th>
+                  <th>Nama</th>
+                  <th>Email</th>
+                  <th>Prodi</th>
+                  <th>Tahun Masuk</th>
+                  <th>Pembimbing 1</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="mahasiswaTableBody">
+                <tr><td colspan="7" class="text-center">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Dosen Section -->
+    <div id="section-dosen" class="content-section">
+      <div class="section-header">
+        <h3>Data Dosen</h3>
+        <button class="btn btn-primary" onclick="addDosen()">+ Tambah Dosen</button>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h4>Daftar Dosen</h4>
+        </div>
+        <div class="card-body">
+          <div class="search-bar">
+            <input type="text" placeholder="Cari dosen..." id="searchDosen">
+          </div>
+          
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>NIP</th>
+                  <th>Nama</th>
+                  <th>Email</th>
+                  <th>Keahlian</th>
+                  <th>Prodi</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="dosenTableBody">
+                <tr><td colspan="6" class="text-center">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Settings Section -->
+    <div id="section-settings" class="content-section">
+      <div class="section-header">
+        <h3>Pengaturan</h3>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h4>Manajemen Data</h4>
+        </div>
+        <div class="card-body">
+          <button class="btn btn-success mb-2" onclick="exportData()">📥 Export Data (JSON)</button>
+          <button class="btn btn-primary mb-2" onclick="importData()">📤 Import Data</button>
+          <button class="btn btn-danger" onclick="clearAllData()">🗑️ Hapus Semua Data</button>
+          <input type="file" id="importFile" accept=".json" style="display:none;" onchange="handleImport(event)">
+        </div>
+      </div>
+    </div>
+    
+  </div>
+</div>
+
+<!-- Modals -->
+<div id="mahasiswaModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="mahasiswaModalTitle">Tambah Mahasiswa</h3>
+      <button class="close-modal" onclick="hideModal('mahasiswaModal')">×</button>
+    </div>
+    <form id="mahasiswaForm">
+      <div class="modal-body">
+        <div class="form-group">
+          <label>NIM</label>
+          <input type="text" name="nim" required>
+        </div>
+        <div class="form-group">
+          <label>Nama</label>
+          <input type="text" name="nama" required>
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" name="email" required>
+        </div>
+        <div class="form-group">
+          <label>WhatsApp</label>
+          <input type="text" name="wa" required>
+        </div>
+        <div class="form-group">
+          <label>Program Studi</label>
+          <select name="prodi" required id="prodiSelectModal"></select>
+        </div>
+        <div class="form-group">
+          <label>Tahun Masuk</label>
+          <input type="number" name="tahunMasuk" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="hideModal('mahasiswaModal')">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/config.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+<script>
+// Populate program studi dropdowns
+document.addEventListener('DOMContentLoaded', () => {
+  const selects = ['prodiSelectMhs', 'prodiSelectDosen', 'prodiSelectModal', 'filterProdi'];
+  selects.forEach(id => {
+    const select = document.getElementById(id);
+    if (select && id !== 'filterProdi') {
+      CONFIG.programs.forEach(prog => {
+        const option = document.createElement('option');
+        option.value = prog;
+        option.textContent = prog;
+        select.appendChild(option);
+      });
+    } else if (select && id === 'filterProdi') {
+      CONFIG.programs.forEach(prog => {
+        const option = document.createElement('option');
+        option.value = prog;
+        option.textContent = prog;
+        select.appendChild(option);
+      });
+    }
+  });
+});
+
+// Export/Import functions
+function exportData() {
+  storage.exportJSON();
+}
+
+function importData() {
+  document.getElementById('importFile').click();
+}
+
+async function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  try {
+    await storage.importJSON(file);
+    alert('Data berhasil diimport!');
+    location.reload();
+  } catch (error) {
+    alert('Error import data: ' + error.message);
+  }
+}
+
+function clearAllData() {
+  if (confirm('PERINGATAN: Ini akan menghapus SEMUA data! Yakin?')) {
+    if (confirm('Konfirmasi sekali lagi. Data tidak bisa dikembalikan!')) {
+      storage.clear();
+      alert('Semua data telah dihapus. Halaman akan reload.');
+      location.reload();
+    }
+  }
+}
+</script>
+
+</body>
+</html>
