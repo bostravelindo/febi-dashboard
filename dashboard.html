@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Bimbingan Skripsi & Repository - FEBI UINSI</title>
+<style>
+:root{--primary:#1e5631;--primary-light:#2d8659;--success:#28a745;--warning:#ffc107;--danger:#dc3545;--info:#17a2b8;--purple:#6f42c1;--orange:#fd7e14}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Tahoma,sans-serif;background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);color:#212529;line-height:1.6;font-size:14px}
+.hidden{display:none!important}
+#loading{position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;transition:opacity 0.5s}
+#loading.hidden{opacity:0;pointer-events:none}
+.spinner{width:50px;height:50px;border:5px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading h2{color:white;margin-top:15px;font-size:20px}
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(135deg,var(--primary),var(--primary-light))}
+.login-box{background:white;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.2);width:100%;max-width:400px;overflow:hidden}
+.login-header{background:linear-gradient(135deg,var(--primary),#143d21);color:white;padding:25px;text-align:center}
+.login-header .logo{width:60px;height:60px;margin:0 auto 10px;background:white;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--primary);font-size:24px;box-shadow:0 4px 10px rgba(0,0,0,0.2)}
+.login-header h1{font-size:20px;margin-bottom:5px;font-weight:700}
+.login-header p{font-size:12px;opacity:0.95}
+.tabs{display:flex;background:#f8f9fa}
+.tab{flex:1;padding:12px;border:none;background:transparent;cursor:pointer;font-size:12px;font-weight:600;color:#6c757d;border-bottom:3px solid transparent;transition:all 0.3s}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);background:white}
+.tab:hover:not(.active){background:rgba(30,86,49,0.05)}
+.tab-content{padding:20px}
+.tab-panel{display:none}
+.tab-panel.active{display:block;animation:fadeIn 0.3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.tab-panel input,.tab-panel select{width:100%;padding:10px;margin-bottom:10px;border:2px solid #dee2e6;border-radius:8px;font-size:13px;transition:all 0.3s}
+.tab-panel input:focus,.tab-panel select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(30,86,49,0.1)}
+.tab-panel button{width:100%;padding:12px;background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;margin-top:5px}
+.tab-panel button:hover{transform:translateY(-2px);box-shadow:0 5px 15px rgba(30,86,49,0.3)}
+#dashboardPage{min-height:100vh;display:none}
+#dashboardPage.active{display:block}
+.header{background:linear-gradient(135deg,var(--primary),#143d21);color:white;padding:12px 0;box-shadow:0 2px 10px rgba(0,0,0,0.1);position:sticky;top:0;z-index:100}
+.header-content{max-width:1400px;margin:0 auto;padding:0 15px;display:flex;justify-content:space-between;align-items:center}
+.header-left{display:flex;align-items:center;gap:10px}
+.header .logo{width:40px;height:40px;background:white;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:bold;color:var(--primary);font-size:18px}
+.header-title h2{font-size:16px;font-weight:700;margin-bottom:2px}
+.header-title p{font-size:10px;opacity:0.9}
+.user-info{text-align:right}
+.user-info strong{display:block;font-size:12px}
+.user-info span{font-size:10px;opacity:0.85;background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:10px;margin-top:2px;display:inline-block}
+.btn-logout{padding:6px 12px;background:rgba(220,53,69,0.9);color:white;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;margin-left:10px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:15px;padding:0}
+.stat-card{background:white;border-radius:10px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08);transition:all 0.3s;border-left:3px solid;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;right:0;width:50px;height:50px;opacity:0.1;border-radius:50%;transform:translate(15px,-15px)}
+.stat-card:nth-child(1){border-left-color:var(--primary);background:linear-gradient(135deg,white,#f0f9f4)}
+.stat-card:nth-child(1)::before{background:var(--primary)}
+.stat-card:nth-child(2){border-left-color:var(--info);background:linear-gradient(135deg,white,#e7f5ff)}
+.stat-card:nth-child(2)::before{background:var(--info)}
+.stat-card:nth-child(3){border-left-color:var(--success);background:linear-gradient(135deg,white,#e6f7ed)}
+.stat-card:nth-child(3)::before{background:var(--success)}
+.stat-card:nth-child(4){border-left-color:var(--warning);background:linear-gradient(135deg,white,#fff9e6)}
+.stat-card:nth-child(4)::before{background:var(--warning)}
+.stat-card:nth-child(5){border-left-color:var(--purple);background:linear-gradient(135deg,white,#f3e7ff)}
+.stat-card:nth-child(5)::before{background:var(--purple)}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 4px 15px rgba(0,0,0,0.15)}
+.stat-icon{width:30px;height:30px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:5px}
+.stat-card:nth-child(1) .stat-icon{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white}
+.stat-card:nth-child(2) .stat-icon{background:linear-gradient(135deg,var(--info),#0d98d4);color:white}
+.stat-card:nth-child(3) .stat-icon{background:linear-gradient(135deg,var(--success),#1e7e34);color:white}
+.stat-card:nth-child(4) .stat-icon{background:linear-gradient(135deg,var(--warning),#e0a800);color:white}
+.stat-card:nth-child(5) .stat-icon{background:linear-gradient(135deg,var(--purple),#5a32a3);color:white}
+.stat-value{font-size:22px;font-weight:bold;line-height:1;color:#212529}
+.stat-label{font-size:10px;color:#6c757d;margin-top:3px;font-weight:500}
+.nav{background:white;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin:0 15px;border-radius:10px;overflow:hidden}
+.nav ul{list-style:none;display:flex;gap:0;padding:0;overflow-x:auto}
+.nav ul::-webkit-scrollbar{height:3px}
+.nav ul::-webkit-scrollbar-thumb{background:var(--primary);border-radius:10px}
+.nav a{display:block;padding:10px 15px;color:#495057;text-decoration:none;font-size:12px;font-weight:600;transition:all 0.3s;white-space:nowrap;border-bottom:3px solid transparent}
+.nav a:hover{background:rgba(30,86,49,0.05);color:var(--primary)}
+.nav a.active{color:var(--primary);border-bottom-color:var(--primary);background:linear-gradient(to bottom,rgba(30,86,49,0.05),transparent)}
+.main{max-width:1400px;margin:0 auto;padding:15px}
+.section{display:none;background:white;border-radius:10px;padding:15px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.section.active{display:block;animation:fadeIn 0.3s}
+.sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;padding-bottom:10px;border-bottom:2px solid #f0f0f0}
+.sec-header h3{font-size:18px;color:var(--primary);font-weight:700;display:flex;align-items:center;gap:8px}
+.sec-header h3::before{content:'';width:3px;height:20px;background:linear-gradient(to bottom,var(--primary),var(--primary-light));border-radius:3px}
+.card{background:white;border-radius:8px;padding:15px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);border:1px solid #f0f0f0}
+.card h4{font-size:14px;margin-bottom:12px;color:var(--primary);font-weight:600}
+.form-group{margin-bottom:10px}
+.form-group label{display:block;font-size:12px;font-weight:600;margin-bottom:5px;color:#495057}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 10px;border:2px solid #dee2e6;border-radius:6px;font-size:12px;transition:all 0.3s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(30,86,49,0.1)}
+.form-group textarea{min-height:80px;resize:vertical}
+table{width:100%;border-collapse:collapse;font-size:12px;background:white}
+thead{background:linear-gradient(135deg,#f8f9fa,#e9ecef)}
+th{padding:8px;text-align:left;font-weight:600;color:#212529;border-bottom:2px solid #dee2e6;font-size:11px;text-transform:uppercase}
+td{padding:8px;border-bottom:1px solid #f0f0f0}
+tbody tr{transition:all 0.2s}
+tbody tr:hover{background:rgba(30,86,49,0.02)}
+.btn{padding:6px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.3s;display:inline-block;text-align:center}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));color:white;box-shadow:0 2px 5px rgba(30,86,49,0.2)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(30,86,49,0.3)}
+.btn-success{background:linear-gradient(135deg,var(--success),#1e7e34);color:white;margin:2px}
+.btn-danger{background:linear-gradient(135deg,var(--danger),#c82333);color:white;margin:2px}
+.btn-warning{background:linear-gradient(135deg,var(--warning),#e0a800);color:#212529;margin:2px}
+.btn-info{background:linear-gradient(135deg,var(--info),#138496);color:white;margin:2px}
+.btn-sm{padding:5px 10px;font-size:11px}
+.badge{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:600;display:inline-block;text-transform:uppercase}
+.badge-success{background:linear-gradient(135deg,#d4edda,#c3e6cb);color:#155724}
+.badge-warning{background:linear-gradient(135deg,#fff3cd,#ffeeba);color:#856404}
+.badge-danger{background:linear-gradient(135deg,#f8d7da,#f5c6cb);color:#721c24}
+.badge-info{background:linear-gradient(135deg,#d1ecf1,#bee5eb);color:#0c5460}
+.badge-primary{background:linear-gradient(135deg,rgba(30,86,49,0.15),rgba(30,86,49,0.25));color:var(--primary)}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:1000;backdrop-filter:blur(4px)}
+.modal.show{display:flex;align-items:center;justify-content:center;animation:fadeIn 0.3s}
+.modal-content{background:white;border-radius:12px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,0.3);animation:slideUp 0.3s}
+@keyframes slideUp{from{opacity:0;transform:translateY(50px) scale(0.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+.modal-header{padding:15px;border-bottom:2px solid #f0f0f0;background:linear-gradient(135deg,#f8f9fa,white);display:flex;justify-content:space-between;align-items:center}
+.modal-header h3{font-size:16px;color:var(--primary);font-weight:700}
+.modal-header button{background:none;border:none;font-size:24px;color:#6c757d;cursor:pointer;width:28px;height:28px;border-radius:50%;transition:all 0.3s}
+.modal-header button:hover{background:#f0f0f0;color:var(--danger)}
+.modal-body{padding:15px}
+.alert{padding:10px 12px;border-radius:6px;margin-bottom:12px;display:none;font-size:12px;animation:slideDown 0.3s}
+.alert.show{display:block}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.alert-success{background:linear-gradient(135deg,#d4edda,#c3e6cb);color:#155724;border-left:3px solid var(--success)}
+.alert-error{background:linear-gradient(135deg,#f8d7da,#f5c6cb);color:#721c24;border-left:3px solid var(--danger)}
+.alert-warning{background:linear-gradient(135deg,#fff3cd,#ffeeba);color:#856404;border-left:3px solid var(--warning)}
+.alert-info{background:linear-gradient(135deg,#d1ecf1,#bee5eb);color:#0c5460;border-left:3px solid var(--info)}
+.footer{text-align:center;padding:15px;margin:15px;background:linear-gradient(135deg,#f8f9fa,#e9ecef);border-radius:10px;font-size:11px;color:#6c757d}
+.footer strong{color:var(--primary);font-weight:600}
+.progress{height:6px;background:#e9ecef;border-radius:10px;overflow:hidden;margin:8px 0}
+.progress-bar{height:100%;background:linear-gradient(to right,var(--primary),var(--primary-light));transition:width 0.3s;border-radius:10px}
+.similarity-result{padding:12px;border-radius:8px;margin:10px 0;border-left:4px solid}
+.similarity-result.diterima{background:#e6f7ed;border-left-color:var(--success);color:#155724}
+.similarity-result.diperbaiki{background:#fff9e6;border-left-color:var(--warning);color:#856404}
+.similarity-result.ditolak{background:#f8d7da;border-left-color:var(--danger);color:#721c24}
+@media (max-width:768px){
+.header-content{flex-direction:column;gap:8px;text-align:center}
+.stats{grid-template-columns:1fr}
+.sec-header{flex-direction:column;align-items:flex-start;gap:8px}
+table{font-size:10px}
+th,td{padding:6px}
+.btn-logout{margin-left:0;margin-top:5px}
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+<div class="spinner"></div>
+<h2>FEBI UINSI Dashboard</h2>
+</div>
+
+<div id="loginPage">
+<div class="login-box">
+<div class="login-header">
+<div class="logo">FE</div>
+<h1>FEBI UINSI Samarinda</h1>
+<p>Dashboard Bimbingan Skripsi & Repository</p>
+</div>
+<div class="tabs">
+<button class="tab active" onclick="showTab(0)">Login</button>
+<button class="tab" onclick="showTab(1)">Daftar Mahasiswa</button>
+<button class="tab" onclick="showTab(2)">Daftar Dosen</button>
+</div>
+<div class="tab-content">
+<form id="loginForm" class="tab-panel active" onsubmit="return handleLogin(event)">
+<div id="loginAlert" class="alert"></div>
+<input type="text" id="loginId" placeholder="NIM/NIP/Admin ID" required autocomplete="username">
+<input type="password" id="loginPass" placeholder="Password" required autocomplete="current-password">
+<button type="submit">Login</button>
+</form>
+<form id="regMhsForm" class="tab-panel" onsubmit="return handleRegMhs(event)">
+<div id="regMhsAlert" class="alert"></div>
+<input type="text" name="nim" placeholder="NIM" required>
+<input type="text" name="nama" placeholder="Nama Lengkap" required>
+<input type="email" name="email" placeholder="Email" required>
+<input type="text" name="wa" placeholder="WhatsApp (08xxx)" required>
+<select name="prodi" required>
+<option value="">Pilih Program Studi</option>
+<option>Ekonomi Syariah</option>
+<option>Perbankan Syariah</option>
+<option>Manajemen Bisnis Syariah</option>
+</select>
+<input type="number" name="tahun" placeholder="Tahun Masuk" min="2015" max="2030" required>
+<input type="password" name="pass" placeholder="Password" required>
+<button type="submit">Daftar</button>
+</form>
+<form id="regDosenForm" class="tab-panel" onsubmit="return handleRegDosen(event)">
+<div id="regDosenAlert" class="alert"></div>
+<input type="text" name="nip" placeholder="NIP" required>
+<input type="text" name="nama" placeholder="Nama Lengkap" required>
+<input type="email" name="email" placeholder="Email" required>
+<input type="text" name="wa" placeholder="WhatsApp (08xxx)" required>
+<input type="text" name="keahlian" placeholder="Bidang Keahlian" required>
+<select name="prodi" required>
+<option value="">Pilih Program Studi</option>
+<option>Ekonomi Syariah</option>
+<option>Perbankan Syariah</option>
+<option>Manajemen Bisnis Syariah</option>
+</select>
+<input type="password" name="pass" placeholder="Password" required>
+<button type="submit">Daftar</button>
+</form>
+</div>
+</div>
+</div>
+
+<div id="dashboardPage">
+<div class="header">
+<div class="header-content">
+<div class="header-left">
+<div class="logo">FE</div>
+<div class="header-title">
+<h2>FEBI UINSI Dashboard</h2>
+<p>Bimbingan Skripsi & Repository</p>
+</div>
+</div>
+<div style="display:flex;align-items:center">
+<div class="user-info">
+<strong id="userName">User</strong>
+<span id="userRole">Role</span>
+</div>
+<button class="btn-logout" onclick="logout()">Logout</button>
+</div>
+</div>
+</div>
+
+<div class="stats">
+<div class="stat-card">
+<span class="stat-icon">📄</span>
+<div class="stat-value" id="statProposal">0</div>
+<div class="stat-label">Proposal Masuk</div>
+</div>
+<div class="stat-card">
+<span class="stat-icon">📚</span>
+<div class="stat-value" id="statBimbingan">0</div>
+<div class="stat-label">Bimbingan Berjalan</div>
+</div>
+<div class="stat-card">
+<span class="stat-icon">✅</span>
+<div class="stat-value" id="statSelesai">0</div>
+<div class="stat-label">Selesai</div>
+</div>
+<div class="stat-card">
+<span class="stat-icon">⚠️</span>
+<div class="stat-value" id="statWarning">0</div>
+<div class="stat-label">Early Warning</div>
+</div>
+<div class="stat-card">
+<span class="stat-icon">🗂️</span>
+<div class="stat-value" id="statRepo">0</div>
+<div class="stat-label">Repository</div>
+</div>
+</div>
+
+<div class="nav">
+<ul id="navMenu"></ul>
+</div>
+
+<div class="main">
+<div id="sec-home" class="section active">
+<div class="sec-header">
+<h3>Dashboard</h3>
+</div>
+<div class="card">
+<h4>Selamat Datang!</h4>
+<p>Dashboard Bimbingan Skripsi dan Repository FEBI UINSI Samarinda membantu Anda mengelola proses bimbingan skripsi secara efektif dan efisien.</p>
+</div>
+</div>
+
+<div id="sec-proposal" class="section">
+<div class="sec-header">
+<h3>Pengajuan Proposal</h3>
+<button class="btn btn-primary" onclick="openAddProposal()">+ Ajukan Proposal</button>
+</div>
+<div class="card">
+<table>
+<thead><tr><th>NIM</th><th>Nama</th><th>Judul</th><th>Similarity</th><th>Status</th><th>Aksi</th></tr></thead>
+<tbody id="proposalBody"></tbody>
+</table>
+</div>
+</div>
+
+<div id="sec-bimbingan" class="section">
+<div class="sec-header">
+<h3>Proses Bimbingan</h3>
+<button class="btn btn-primary" onclick="openAddBimbingan()">+ Tambah Bimbingan</button>
+</div>
+<div class="card">
+<table>
+<thead><tr><th>NIM</th><th>Nama</th><th>Judul</th><th>Bab</th><th>Progress</th><th>Aksi</th></tr></thead>
+<tbody id="bimbinganBody"></tbody>
+</table>
+</div>
+</div>
+
+<div id="sec-repository" class="section">
+<div class="sec-header">
+<h3>Repository Skripsi</h3>
+<button class="btn btn-primary" onclick="openAddRepo()">+ Upload Skripsi</button>
+</div>
+<div class="card">
+<input type="text" id="searchRepo" placeholder="🔍 Cari judul, penulis, tahun..." onkeyup="searchRepo()" style="margin-bottom:10px">
+<table>
+<thead><tr><th>Tahun</th><th>Penulis</th><th>Judul</th><th>Prodi</th><th>Aksi</th></tr></thead>
+<tbody id="repoBody"></tbody>
+</table>
+</div>
+</div>
+
+<div id="sec-warning" class="section">
+<div class="sec-header">
+<h3>Early Warning</h3>
+<button class="btn btn-warning" onclick="sendAllWarnings()">📧 Kirim Semua Warning</button>
+</div>
+<div class="card">
+<table>
+<thead><tr><th>NIM</th><th>Nama</th><th>Semester</th><th>Email</th><th>WA</th><th>Aksi</th></tr></thead>
+<tbody id="warningBody"></tbody>
+</table>
+</div>
+</div>
+
+<div id="sec-mahasiswa" class="section">
+<div class="sec-header">
+<h3>Data Mahasiswa</h3>
+<button class="btn btn-primary" onclick="openAddMhs()">+ Tambah</button>
+</div>
+<div class="card">
+<table>
+<thead><tr><th>NIM</th><th>Nama</th><th>Prodi</th><th>Tahun</th><th>Semester</th><th>Aksi</th></tr></thead>
+<tbody id="mhsBody"></tbody>
+</table>
+</div>
+</div>
+
+<div id="sec-dosen" class="section">
+<div class="sec-header">
+<h3>Data Dosen</h3>
+<button class="btn btn-primary" onclick="openAddDosen()">+ Tambah</button>
+</div>
+<div class="card">
+<table>
+<thead><tr><th>NIP</th><th>Nama</th><th>Keahlian</th><th>Prodi</th><th>Aksi</th></tr></thead>
+<tbody id="dosenBody"></tbody>
+</table>
+</div>
+</div>
+
+<div id="sec-settings" class="section">
+<div class="sec-header">
+<h3>Pengaturan</h3>
+</div>
+<div class="card">
+<h4>Manajemen Data</h4>
+<button class="btn btn-success" onclick="exportData()">📥 Export Data</button>
+<button class="btn btn-info" onclick="document.getElementById('importFile').click()">📤 Import Data</button>
+<button class="btn btn-danger" onclick="clearData()">🗑️ Hapus Semua Data</button>
+<input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+</div>
+</div>
+</div>
+
+<div class="footer">
+<strong>© <span id="currentYear"></span> FEBI UINSI Samarinda</strong><br>
+Managed by Iskandar
+</div>
+</div>
+
+<div id="modal" class="modal">
+<div class="modal-content">
+<div class="modal-header">
+<h3 id="modalTitle">Modal</h3>
+<button onclick="closeModal()">&times;</button>
+</div>
+<div class="modal-body" id="modalBody"></div>
+</div>
+</div>
+
+<script>
+const CONFIG={
+programs:['Ekonomi Syariah','Perbankan Syariah','Manajemen Bisnis Syariah'],
+defaultAdmin:{id:'ADMIN001',password:'admin123',role:'admin',nama:'Administrator',email:'admin@febi.uinsi.ac.id'},
+similarity:{diterima:30,diperbaiki:60,ditolak:100},
+earlyWarning:{startSemester:11,maxSemester:14},
+babs:['Bab 1','Bab 2','Bab 3','Bab 4','Bab 5','Selesai']
+};
+
+class Storage{
+constructor(){this.key='febiData';this.init()}
+init(){if(!localStorage.getItem(this.key)){
+const d={users:[CONFIG.defaultAdmin],mahasiswa:[],dosen:[],proposals:[],bimbingan:[],repository:[],warnings:[]};
+this.save(d)}}
+getData(){return JSON.parse(localStorage.getItem(this.key)||'{}')}
+save(d){localStorage.setItem(this.key,JSON.stringify(d))}
+get(c){return this.getData()[c]||[]}
+add(c,i){const d=this.getData();d[c].push(i);this.save(d)}
+update(c,id,u,f='id'){const d=this.getData();const i=d[c].findIndex(x=>x[f]===id);
+if(i!==-1){d[c][i]={...d[c][i],...u};this.save(d);return true}return false}
+delete(c,id,f='id'){const d=this.getData();d[c]=d[c].filter(x=>x[f]!==id);this.save(d)}
+find(c,id,f='id'){return this.get(c).find(x=>x[f]===id)}
+checkSimilarity(t){
+const p=this.get('proposals'),r=this.get('repository');
+let max=0,sim=null;
+p.forEach(x=>{const s=this.calcSim(t,x.judul);if(s>max){max=s;sim=x.judul}});
+r.forEach(x=>{const s=this.calcSim(t,x.title);if(s>max){max=s;sim=x.title}});
+return{score:Math.round(max),status:this.getSimStatus(max),similarTo:sim}}
+calcSim(s1,s2){
+s1=s1.toLowerCase().trim();s2=s2.toLowerCase().trim();
+const w1=s1.split(/\s+/),w2=s2.split(/\s+/);
+let m=0;w1.forEach(w=>{if(w2.includes(w)&&w.length>3)m++});
+return(m/Math.max(w1.length,w2.length))*100}
+getSimStatus(s){if(s<CONFIG.similarity.diterima)return'Diterima';
+if(s<CONFIG.similarity.diperbaiki)return'Diperbaiki';return'Ditolak'}
+checkEarlyWarning(y){
+const cy=new Date().getFullYear(),cm=new Date().getMonth();
+const yd=cy-y,sem=(yd*2)+(cm>=7?1:0);
+return{semester:sem,needWarning:sem>=CONFIG.earlyWarning.startSemester&&sem<=CONFIG.earlyWarning.maxSemester,
+status:sem>CONFIG.earlyWarning.maxSemester?'Kadaluarsa':sem>=CONFIG.earlyWarning.startSemester?'Warning':'Normal'}}
+getStats(){const d=this.getData();
+const w=d.mahasiswa.filter(m=>this.checkEarlyWarning(m.tahunMasuk).needWarning);
+return{proposal:d.proposals.length,
+bimbingan:d.bimbingan.filter(b=>b.currentBab!=='Selesai').length,
+selesai:d.bimbingan.filter(b=>b.currentBab==='Selesai').length,
+warning:w.length,repo:d.repository.length}}
+exportJSON(){const d=this.getData(),j=JSON.stringify(d,null,2),b=new Blob([j],{type:'application/json'}),
+u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=`febi-backup-${Date.now()}.json`;
+a.click();URL.revokeObjectURL(u)}
+async importJSON(f){return new Promise((res,rej)=>{const r=new FileReader();
+r.onload=e=>{try{const d=JSON.parse(e.target.result);this.save(d);res(true)}catch(err){rej(err)}};
+r.readAsText(f)})}
+clear(){this.init()}
+}
+
+const storage=new Storage();
+let currentUser=null;
+
+setTimeout(()=>document.getElementById('loading').classList.add('hidden'),500);
+document.getElementById('currentYear').textContent=new Date().getFullYear();
+
+function showTab(i){
+document.querySelectorAll('.tab').forEach((t,x)=>{t.classList.toggle('active',x===i)});
+document.querySelectorAll('.tab-panel').forEach((p,x)=>{p.classList.toggle('active',x===i)})}
+
+function showAlert(id,msg,type){
+const el=document.getElementById(id);el.className=`alert alert-${type} show`;el.textContent=msg;
+setTimeout(()=>el.classList.remove('show'),3000)}
+
+function handleLogin(e){
+e.preventDefault();
+const id=document.getElementById('loginId').value.trim(),
+pass=document.getElementById('loginPass').value,
+users=storage.get('users'),user=users.find(u=>u.id===id&&u.password===pass);
+if(user){currentUser=user;sessionStorage.setItem('currentUser',JSON.stringify(user));
+showAlert('loginAlert','Login berhasil!','success');
+setTimeout(()=>showDashboard(),500)}else{showAlert('loginAlert','ID atau password salah!','error')}
+return false}
+
+function handleRegMhs(e){
+e.preventDefault();const f=e.target,nim=f.nim.value.trim();
+if(storage.find('users',nim)){showAlert('regMhsAlert','NIM sudah terdaftar!','error');return false}
+const user={id:nim,password:f.pass.value,role:'mahasiswa',nama:f.nama.value,email:f.email.value,registeredAt:new Date().toISOString()};
+const mhs={nim:nim,nama:f.nama.value,email:f.email.value,wa:f.wa.value,prodi:f.prodi.value,
+tahunMasuk:parseInt(f.tahun.value),pembimbing1:'',pembimbing2:'',registeredAt:new Date().toISOString()};
+storage.add('users',user);storage.add('mahasiswa',mhs);
+showAlert('regMhsAlert','Registrasi berhasil! Silakan login.','success');f.reset();
+setTimeout(()=>showTab(0),1500);return false}
+
+function handleRegDosen(e){
+e.preventDefault();const f=e.target,nip=f.nip.value.trim();
+if(storage.find('users',nip)){showAlert('regDosenAlert','NIP sudah terdaftar!','error');return false}
+const user={id:nip,password:f.pass.value,role:'dosen',nama:f.nama.value,email:f.email.value,registeredAt:new Date().toISOString()};
+const dosen={nip:nip,nama:f.nama.value,email:f.email.value,wa:f.wa.value,keahlian:f.keahlian.value,
+prodi:f.prodi.value,registeredAt:new Date().toISOString()};
+storage.add('users',user);storage.add('dosen',dosen);
+showAlert('regDosenAlert','Registrasi berhasil! Silakan login.','success');f.reset();
+setTimeout(()=>showTab(0),1500);return false}
+
+function logout(){if(confirm('Yakin ingin logout?')){currentUser=null;sessionStorage.removeItem('currentUser');
+document.getElementById('loginPage').classList.remove('hidden');
+document.getElementById('dashboardPage').classList.remove('active')}}
+
+function showDashboard(){
+document.getElementById('loginPage').classList.add('hidden');
+document.getElementById('dashboardPage').classList.add('active');
+document.getElementById('userName').textContent=currentUser.nama;
+document.getElementById('userRole').textContent=currentUser.role;
+setupNav();loadSection('home');updateStats()}
+
+function setupNav(){
+const menus={
+admin:['home','proposal','bimbingan','repository','warning','mahasiswa','dosen','settings'],
+mahasiswa:['home','proposal','bimbingan','repository'],
+dosen:['home','proposal','bimbingan','repository']
+},labels={
+home:'🏠 Dashboard',proposal:'📄 Proposal',bimbingan:'📚 Bimbingan',repository:'🗂️ Repository',
+warning:'⚠️ Early Warning',mahasiswa:'👥 Mahasiswa',dosen:'👨‍🏫 Dosen',settings:'⚙️ Settings'
+},nav=document.getElementById('navMenu');nav.innerHTML='';
+menus[currentUser.role].forEach(id=>{
+const li=document.createElement('li'),a=document.createElement('a');
+a.textContent=labels[id];a.onclick=()=>loadSection(id);li.appendChild(a);nav.appendChild(li)});
+nav.querySelector('a').classList.add('active')}
+
+function loadSection(id){
+document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
+event?.target?.classList.add('active')||document.querySelector(`.nav a`).classList.add('active');
+document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+document.getElementById(`sec-${id}`).classList.add('active');
+switch(id){
+case'home':loadHome();break;case'proposal':loadProposal();break;case'bimbingan':loadBimbingan();break;
+case'repository':loadRepo();break;case'warning':loadWarning();break;case'mahasiswa':loadMhs();break;
+case'dosen':loadDosen();break}}
+
+function loadHome(){updateStats()}
+
+function updateStats(){
+const s=storage.getStats();
+document.getElementById('statProposal').textContent=s.proposal;
+document.getElementById('statBimbingan').textContent=s.bimbingan;
+document.getElementById('statSelesai').textContent=s.selesai;
+document.getElementById('statWarning').textContent=s.warning;
+document.getElementById('statRepo').textContent=s.repo}
+
+function loadProposal(){
+const props=storage.get('proposals'),tbody=document.getElementById('proposalBody');
+if(props.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center">Belum ada proposal</td></tr>';return}
+tbody.innerHTML=props.map(p=>{
+const mhs=storage.find('mahasiswa',p.nim,'nim');
+return`<tr><td>${p.nim}</td><td>${mhs?mhs.nama:'-'}</td><td>${p.judul}</td>
+<td><span class="badge badge-${p.similarityScore<30?'success':p.similarityScore<60?'warning':'danger'}">${p.similarityScore}%</span></td>
+<td><span class="badge badge-${p.status==='Diterima'?'success':p.status==='Diperbaiki'?'warning':'danger'}">${p.status}</span></td>
+<td><button class="btn btn-info btn-sm" onclick='viewProposal("${p.id}")'>Detail</button>
+${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick='deleteProposal("${p.id}")'>Hapus</button>`:''}</td></tr>`}).join('')}
+
+function loadBimbingan(){
+const bimbs=storage.get('bimbingan'),tbody=document.getElementById('bimbinganBody');
+if(bimbs.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center">Belum ada data</td></tr>';return}
+tbody.innerHTML=bimbs.map(b=>{
+const mhs=storage.find('mahasiswa',b.nim,'nim'),prog=Object.values(b.babProgress||{}).filter(s=>s==='ACC').length;
+return`<tr><td>${b.nim}</td><td>${mhs?mhs.nama:'-'}</td><td>${b.judul}</td><td>${b.currentBab}</td>
+<td><div class="progress"><div class="progress-bar" style="width:${(prog/5)*100}%"></div></div>${prog}/5</td>
+<td><button class="btn btn-info btn-sm" onclick='viewBimbingan("${b.id}")'>Detail</button>
+${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick='deleteBimbingan("${b.id}")'>Hapus</button>`:''}</td></tr>`}).join('')}
+
+function loadRepo(){
+const repos=storage.get('repository'),tbody=document.getElementById('repoBody');
+if(repos.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center">Belum ada data</td></tr>';return}
+tbody.innerHTML=repos.map(r=>`<tr><td>${r.year}</td><td>${r.author}</td><td>${r.title}</td><td>${r.prodi}</td>
+<td><button class="btn btn-info btn-sm" onclick='viewRepo("${r.id}")'>Detail</button>
+${currentUser.role==='admin'?`<button class="btn btn-danger btn-sm" onclick='deleteRepo("${r.id}")'>Hapus</button>`:''}</td></tr>`).join('')}
+
+function searchRepo(){
+const q=document.getElementById('searchRepo').value.toLowerCase(),
+rows=document.querySelectorAll('#repoBody tr');
+rows.forEach(r=>{const t=r.textContent.toLowerCase();r.style.display=t.includes(q)?'':'none'})}
+
+function loadWarning(){
+const mhs=storage.get('mahasiswa').filter(m=>storage.checkEarlyWarning(m.tahunMasuk).needWarning),
+tbody=document.getElementById('warningBody');
+if(mhs.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center">Tidak ada mahasiswa yang memerlukan warning</td></tr>';return}
+tbody.innerHTML=mhs.map(m=>{
+const check=storage.checkEarlyWarning(m.tahunMasuk);
+return`<tr><td>${m.nim}</td><td>${m.nama}</td><td><span class="badge badge-warning">S${check.semester}</span></td>
+<td>${m.email}</td><td>${m.wa}</td>
+<td><button class="btn btn-warning btn-sm" onclick='sendWarning("${m.nim}")'>📧 Kirim</button></td></tr>`}).join('')}
+
+function loadMhs(){
+const mhs=storage.get('mahasiswa'),tbody=document.getElementById('mhsBody');
+if(mhs.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center">Belum ada data</td></tr>';return}
+tbody.innerHTML=mhs.map(m=>{
+const check=storage.checkEarlyWarning(m.tahunMasuk);
+return`<tr><td>${m.nim}</td><td>${m.nama}</td><td>${m.prodi}</td><td>${m.tahunMasuk}</td>
+<td><span class="badge badge-${check.needWarning?'warning':'info'}">S${check.semester}</span></td>
+<td><button class="btn btn-success btn-sm" onclick='editMhs("${m.nim}")'>Edit</button>
+<button class="btn btn-danger btn-sm" onclick='deleteMhs("${m.nim}")'>Hapus</button></td></tr>`}).join('')}
+
+function loadDosen(){
+const dosen=storage.get('dosen'),tbody=document.getElementById('dosenBody');
+if(dosen.length===0){tbody.innerHTML='<tr><td colspan="5" style="text-align:center">Belum ada data</td></tr>';return}
+tbody.innerHTML=dosen.map(d=>`<tr><td>${d.nip}</td><td>${d.nama}</td><td>${d.keahlian}</td><td>${d.prodi}</td>
+<td><button class="btn btn-success btn-sm" onclick='editDosen("${d.nip}")'>Edit</button>
+<button class="btn btn-danger btn-sm" onclick='deleteDosen("${d.nip}")'>Hapus</button></td></tr>`).join('')}
+
+function openAddProposal(){
+const mhs=currentUser.role==='mahasiswa'?storage.find('mahasiswa',currentUser.id,'nim'):null,
+dosen=storage.get('dosen');
+const body=`<form onsubmit="return saveProposal(event)">
+${currentUser.role==='admin'?`<div class="form-group"><label>Mahasiswa</label><select name="nim" required>
+<option value="">Pilih Mahasiswa</option>${storage.get('mahasiswa').map(m=>`<option value="${m.nim}">${m.nim} - ${m.nama}</option>`).join('')}</select></div>`:''}
+<div class="form-group"><label>Judul Proposal</label><textarea name="judul" required></textarea></div>
+<div class="form-group"><label>Dosen Pembimbing 1</label><select name="p1" required>
+<option value="">Pilih Dosen</option>${dosen.map(d=>`<option value="${d.nama}">${d.nama}</option>`).join('')}</select></div>
+<div class="form-group"><label>Dosen Pembimbing 2</label><select name="p2" required>
+<option value="">Pilih Dosen</option>${dosen.map(d=>`<option value="${d.nama}">${d.nama}</option>`).join('')}</select></div>
+<button type="button" class="btn btn-info" onclick="checkSimilarity()">🔍 Cek Similarity</button>
+<div id="similarityResult"></div>
+<button type="submit" class="btn btn-primary" style="width:100%;margin-top:10px">Ajukan Proposal</button></form>`;
+openModal('Ajukan Proposal',body)}
+
+function checkSimilarity(){
+const judul=document.querySelector('[name="judul"]').value;
+if(!judul){alert('Masukkan judul terlebih dahulu');return}
+const result=storage.checkSimilarity(judul),
+div=document.getElementById('similarityResult');
+div.innerHTML=`<div class="similarity-result ${result.status.toLowerCase()}">
+<strong>Similarity Score: ${result.score}%</strong><br>
+Status: ${result.status}<br>${result.similarTo?`Mirip dengan: "${result.similarTo}"`:''}</div>`;
+div.style.display='block'}
+
+function saveProposal(e){
+e.preventDefault();const f=e.target,
+nim=currentUser.role==='mahasiswa'?currentUser.id:f.nim.value,
+judul=f.judul.value,
+simResult=storage.checkSimilarity(judul);
+const prop={id:'PROP'+Date.now(),nim:nim,judul:judul,
+pembimbing1:f.p1.value,pembimbing2:f.p2.value,
+similarityScore:simResult.score,status:simResult.status,
+createdAt:new Date().toISOString()};
+storage.add('proposals',prop);
+closeModal();loadProposal();updateStats();
+alert('Proposal berhasil diajukan!');return false}
+
+function viewProposal(id){
+const p=storage.find('proposals',id),mhs=storage.find('mahasiswa',p.nim,'nim');
+const body=`<div class="form-group"><label>NIM</label><input value="${p.nim}" disabled></div>
+<div class="form-group"><label>Nama</label><input value="${mhs?mhs.nama:'-'}" disabled></div>
+<div class="form-group"><label>Judul</label><textarea disabled>${p.judul}</textarea></div>
+<div class="form-group"><label>Pembimbing 1</label><input value="${p.pembimbing1}" disabled></div>
+<div class="form-group"><label>Pembimbing 2</label><input value="${p.pembimbing2}" disabled></div>
+<div class="form-group"><label>Similarity</label><input value="${p.similarityScore}%" disabled></div>
+<div class="form-group"><label>Status</label><input value="${p.status}" disabled></div>`;
+openModal('Detail Proposal',body)}
+
+function deleteProposal(id){if(confirm('Hapus proposal ini?')){storage.delete('proposals',id);loadProposal();updateStats()}}
+
+function openAddBimbingan(){
+const props=storage.get('proposals').filter(p=>p.status==='Diterima');
+if(props.length===0){alert('Belum ada proposal yang diterima');return}
+const body=`<form onsubmit="return saveBimbingan(event)">
+<div class="form-group"><label>Proposal</label><select name="propId" required>
+<option value="">Pilih Proposal</option>${props.map(p=>`<option value="${p.id}">${p.nim} - ${p.judul.substring(0,50)}...</option>`).join('')}</select></div>
+<button type="submit" class="btn btn-primary" style="width:100%">Mulai Bimbingan</button></form>`;
+openModal('Tambah Bimbingan',body)}
+
+function saveBimbingan(e){
+e.preventDefault();const f=e.target,prop=storage.find('proposals',f.propId.value);
+if(!prop)return false;
+const babProg={};CONFIG.babs.forEach(b=>babProg[b]='Draft');
+const bimb={id:'BIMB'+Date.now(),nim:prop.nim,judul:prop.judul,
+pembimbing1:prop.pembimbing1,pembimbing2:prop.pembimbing2,
+currentBab:'Bab 1',babProgress:babProg,komentar:[],
+createdAt:new Date().toISOString()};
+storage.add('bimbingan',bimb);closeModal();loadBimbingan();updateStats();
+alert('Bimbingan berhasil ditambahkan!');return false}
+
+function viewBimbingan(id){
+const b=storage.find('bimbingan',id),mhs=storage.find('mahasiswa',b.nim,'nim');
+let komentarHTML='<div style="max-height:200px;overflow-y:auto;border:1px solid #dee2e6;padding:10px;border-radius:6px;margin:10px 0">';
+if(b.komentar&&b.komentar.length>0){
+b.komentar.forEach(k=>komentarHTML+=`<div style="margin-bottom:8px;padding:8px;background:#f8f9fa;border-radius:4px">
+<strong>${k.by}</strong> <small>(${k.bab})</small><br>${k.text}<br><small>${new Date(k.date).toLocaleString()}</small></div>`)}
+else{komentarHTML+='<p style="text-align:center;color:#6c757d">Belum ada komentar</p>'}
+komentarHTML+='</div>';
+const body=`<div class="form-group"><label>NIM</label><input value="${b.nim}" disabled></div>
+<div class="form-group"><label>Nama</label><input value="${mhs?mhs.nama:'-'}" disabled></div>
+<div class="form-group"><label>Judul</label><textarea disabled>${b.judul}</textarea></div>
+<div class="form-group"><label>Pembimbing 1</label><input value="${b.pembimbing1}" disabled></div>
+<div class="form-group"><label>Pembimbing 2</label><input value="${b.pembimbing2}" disabled></div>
+<div class="form-group"><label>Current Bab</label><input value="${b.currentBab}" disabled></div>
+<div class="form-group"><label>Progress</label>${Object.entries(b.babProgress||{}).map(([bab,st])=>
+`<div style="display:flex;justify-content:space-between;padding:5px;border-bottom:1px solid #f0f0f0">
+<span>${bab}</span><span class="badge badge-${st==='ACC'?'success':st==='Revisi'?'warning':'info'}">${st}</span></div>`).join('')}</div>
+<h4 style="margin-top:15px">Komentar</h4>${komentarHTML}
+${currentUser.role==='dosen'||currentUser.role==='admin'?`<form onsubmit="return addKomentar(event,'${id}')">
+<div class="form-group"><label>Bab</label><select name="bab" required>${CONFIG.babs.map(b=>`<option>${b}</option>`).join('')}</select></div>
+<div class="form-group"><label>Komentar</label><textarea name="komentar" required></textarea></div>
+<button type="submit" class="btn btn-primary" style="width:100%">Tambah Komentar</button></form>`:''}`;
+openModal('Detail Bimbingan',body)}
+
+function addKomentar(e,id){
+e.preventDefault();const f=e.target,b=storage.find('bimbingan',id);
+if(!b)return false;
+const kom={by:currentUser.nama,bab:f.bab.value,text:f.komentar.value,date:new Date().toISOString()};
+b.komentar=b.komentar||[];b.komentar.push(kom);
+storage.update('bimbingan',id,{komentar:b.komentar});
+closeModal();viewBimbingan(id);return false}
+
+function deleteBimbingan(id){if(confirm('Hapus bimbingan ini?')){storage.delete('bimbingan',id);loadBimbingan();updateStats()}}
+
+function openAddRepo(){
+const body=`<form onsubmit="return saveRepo(event)">
+<div class="form-group"><label>Penulis</label><input name="author" required></div>
+<div class="form-group"><label>Judul</label><textarea name="title" required></textarea></div>
+<div class="form-group"><label>Abstrak</label><textarea name="abstract" required></textarea></div>
+<div class="form-group"><label>Keywords (pisah dengan koma)</label><input name="keywords" required></div>
+<div class="form-group"><label>Tahun</label><input type="number" name="year" value="${new Date().getFullYear()}" required></div>
+<div class="form-group"><label>Prodi</label><select name="prodi" required>
+${CONFIG.programs.map(p=>`<option>${p}</option>`).join('')}</select></div>
+<button type="submit" class="btn btn-primary" style="width:100%">Upload</button></form>`;
+openModal('Upload Skripsi',body)}
+
+function saveRepo(e){
+e.preventDefault();const f=e.target;
+const repo={id:'REPO'+Date.now(),author:f.author.value,title:f.title.value,
+abstract:f.abstract.value,keywords:f.keywords.value.split(',').map(k=>k.trim()),
+year:parseInt(f.year.value),prodi:f.prodi.value,uploadDate:new Date().toISOString()};
+storage.add('repository',repo);closeModal();loadRepo();updateStats();
+alert('Skripsi berhasil diupload!');return false}
+
+function viewRepo(id){
+const r=storage.find('repository',id);
+const body=`<div class="form-group"><label>Penulis</label><input value="${r.author}" disabled></div>
+<div class="form-group"><label>Judul</label><textarea disabled>${r.title}</textarea></div>
+<div class="form-group"><label>Abstrak</label><textarea disabled>${r.abstract}</textarea></div>
+<div class="form-group"><label>Keywords</label><input value="${r.keywords.join(', ')}" disabled></div>
+<div class="form-group"><label>Tahun</label><input value="${r.year}" disabled></div>
+<div class="form-group"><label>Prodi</label><input value="${r.prodi}" disabled></div>`;
+openModal('Detail Skripsi',body)}
+
+function deleteRepo(id){if(confirm('Hapus repository ini?')){storage.delete('repository',id);loadRepo();updateStats()}}
+
+function sendWarning(nim){
+const mhs=storage.find('mahasiswa',nim,'nim');
+if(!mhs)return;
+const check=storage.checkEarlyWarning(mhs.tahunMasuk);
+alert(`Warning dikirim ke:\nNama: ${mhs.nama}\nEmail: ${mhs.email}\nWA: ${mhs.wa}\n\nPeringatan: Anda sudah semester ${check.semester}. Segera selesaikan skripsi!`);
+const warn={id:'WARN'+Date.now(),nim:mhs.nim,nama:mhs.nama,email:mhs.email,wa:mhs.wa,
+semester:check.semester,sentAt:new Date().toISOString()};
+storage.add('warnings',warn)}
+
+function sendAllWarnings(){
+const mhs=storage.get('mahasiswa').filter(m=>storage.checkEarlyWarning(m.tahunMasuk).needWarning);
+if(mhs.length===0){alert('Tidak ada mahasiswa yang perlu warning');return}
+if(confirm(`Kirim warning ke ${mhs.length} mahasiswa?`)){
+mhs.forEach(m=>sendWarning(m.nim));
+alert(`Warning berhasil dikirim ke ${mhs.length} mahasiswa!`)}}
+
+function openAddMhs(){
+const body=`<form onsubmit="return saveMhs(event)">
+<div class="form-group"><label>NIM</label><input name="nim" required></div>
+<div class="form-group"><label>Nama</label><input name="nama" required></div>
+<div class="form-group"><label>Email</label><input type="email" name="email" required></div>
+<div class="form-group"><label>WhatsApp</label><input name="wa" required></div>
+<div class="form-group"><label>Prodi</label><select name="prodi" required>
+${CONFIG.programs.map(p=>`<option>${p}</option>`).join('')}</select></div>
+<div class="form-group"><label>Tahun Masuk</label><input type="number" name="tahun" min="2015" max="2030" required></div>
+<button type="submit" class="btn btn-primary" style="width:100%">Simpan</button></form>`;
+openModal('Tambah Mahasiswa',body)}
+
+function saveMhs(e){
+e.preventDefault();const f=e.target;
+const mhs={nim:f.nim.value,nama:f.nama.value,email:f.email.value,wa:f.wa.value,
+prodi:f.prodi.value,tahunMasuk:parseInt(f.tahun.value),pembimbing1:'',pembimbing2:'',
+registeredAt:new Date().toISOString()};
+storage.add('mahasiswa',mhs);closeModal();loadMhs();
+alert('Mahasiswa berhasil ditambahkan!');return false}
+
+function editMhs(nim){
+const mhs=storage.find('mahasiswa',nim,'nim');
+const body=`<form onsubmit="return updateMhs(event,'${nim}')">
+<div class="form-group"><label>NIM</label><input value="${mhs.nim}" disabled></div>
+<div class="form-group"><label>Nama</label><input name="nama" value="${mhs.nama}" required></div>
+<div class="form-group"><label>Email</label><input type="email" name="email" value="${mhs.email}" required></div>
+<div class="form-group"><label>WhatsApp</label><input name="wa" value="${mhs.wa}" required></div>
+<div class="form-group"><label>Prodi</label><select name="prodi" required>
+${CONFIG.programs.map(p=>`<option ${p===mhs.prodi?'selected':''}>${p}</option>`).join('')}</select></div>
+<div class="form-group"><label>Tahun Masuk</label><input type="number" name="tahun" value="${mhs.tahunMasuk}" required></div>
+<button type="submit" class="btn btn-primary" style="width:100%">Update</button></form>`;
+openModal('Edit Mahasiswa',body)}
+
+function updateMhs(e,nim){
+e.preventDefault();const f=e.target;
+const updates={nama:f.nama.value,email:f.email.value,wa:f.wa.value,
+prodi:f.prodi.value,tahunMasuk:parseInt(f.tahun.value)};
+storage.update('mahasiswa',nim,updates,'nim');closeModal();loadMhs();
+alert('Data mahasiswa berhasil diupdate!');return false}
+
+function deleteMhs(nim){if(confirm('Hapus mahasiswa ini?')){
+storage.delete('mahasiswa',nim,'nim');storage.delete('users',nim);loadMhs()}}
+
+function openAddDosen(){
+const body=`<form onsubmit="return saveDosen(event)">
+<div class="form-group"><label>NIP</label><input name="nip" required></div>
+<div class="form-group"><label>Nama</label><input name="nama" required></div>
+<div class="form-group"><label>Email</label><input type="email" name="email" required></div>
+<div class="form-group"><label>WhatsApp</label><input name="wa" required></div>
+<div class="form-group"><label>Keahlian</label><input name="keahlian" required></div>
+<div class="form-group"><label>Prodi</label><select name="prodi" required>
+${CONFIG.programs.map(p=>`<option>${p}</option>`).join('')}</select></div>
+<button type="submit" class="btn btn-primary" style="width:100%">Simpan</button></form>`;
+openModal('Tambah Dosen',body)}
+
+function saveDosen(e){
+e.preventDefault();const f=e.target;
+const dosen={nip:f.nip.value,nama:f.nama.value,email:f.email.value,wa:f.wa.value,
+keahlian:f.keahlian.value,prodi:f.prodi.value,registeredAt:new Date().toISOString()};
+storage.add('dosen',dosen);closeModal();loadDosen();
+alert('Dosen berhasil ditambahkan!');return false}
+
+function editDosen(nip){
+const dosen=storage.find('dosen',nip,'nip');
+const body=`<form onsubmit="return updateDosen(event,'${nip}')">
+<div class="form-group"><label>NIP</label><input value="${dosen.nip}" disabled></div>
+<div class="form-group"><label>Nama</label><input name="nama" value="${dosen.nama}" required></div>
+<div class="form-group"><label>Email</label><input type="email" name="email" value="${dosen.email}" required></div>
+<div class="form-group"><label>WhatsApp</label><input name="wa" value="${dosen.wa}" required></div>
+<div class="form-group"><label>Keahlian</label><input name="keahlian" value="${dosen.keahlian}" required></div>
+<div class="form-group"><label>Prodi</label><select name="prodi" required>
+${CONFIG.programs.map(p=>`<option ${p===dosen.prodi?'selected':''}>${p}</option>`).join('')}</select></div>
+<button type="submit" class="btn btn-primary" style="width:100%">Update</button></form>`;
+openModal('Edit Dosen',body)}
+
+function updateDosen(e,nip){
+e.preventDefault();const f=e.target;
+const updates={nama:f.nama.value,email:f.email.value,wa:f.wa.value,
+keahlian:f.keahlian.value,prodi:f.prodi.value};
+storage.update('dosen',nip,updates,'nip');closeModal();loadDosen();
+alert('Data dosen berhasil diupdate!');return false}
+
+function deleteDosen(nip){if(confirm('Hapus dosen ini?')){
+storage.delete('dosen',nip,'nip');storage.delete('users',nip);loadDosen()}}
+
+function openModal(title,body){
+document.getElementById('modalTitle').textContent=title;
+document.getElementById('modalBody').innerHTML=body;
+document.getElementById('modal').classList.add('show')}
+
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+
+function exportData(){storage.exportJSON()}
+
+async function importData(e){
+try{await storage.importJSON(e.target.files[0]);alert('Import berhasil!');location.reload()}
+catch(err){alert('Error: '+err.message)}}
+
+function clearData(){if(confirm('PERINGATAN: Hapus semua data?')){
+if(confirm('Konfirmasi sekali lagi!')){storage.clear();alert('Data dihapus!');location.reload()}}}
+
+const user=sessionStorage.getItem('currentUser');
+if(user){currentUser=JSON.parse(user);showDashboard()}
+</script>
+</body>
+</html>
